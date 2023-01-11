@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -35,6 +37,49 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  Future<PokemonResponse> _getPokemons() async {
+    final respuesta = await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=10'));
+    if(respuesta.statusCode == 200) {
+      return PokemonResponse.fromJson(jsonDecode(respuesta.body));
+    }else {
+      throw Exception('No se pudo cargar los pokemon');
+    }
+  }
+
+  late Future<PokemonResponse> listaPokemon;
+
+  
+  /*List<int> pokemons = List.generate(10, (i) => i);
+  ScrollController _scrollController = new ScrollController();
+  bool estaHaciendoPeticion = false;*/
+
+  @override
+  void initState() {
+    super.initState();
+    /*_scrollController.addListener(() {
+      if(_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+        listaPokemon = _getPokemons();
+      }
+    });*/
+    listaPokemon = _getPokemons();
+  }
+
+  /*@override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }*/
+
+  /*_obtenerPokemons() async {
+    if(!estaHaciendoPeticion) {
+      setState(() {
+        estaHaciendoPeticion = true;
+      });
+      List<int> nuevosPokemon = await peticion(pokemons.length, pokemons.length + 10);
+    }
+  }*/
+
+
   @override
   Widget build(BuildContext context) {
 
@@ -45,13 +90,24 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
 
-        child: Column(
+        child: FutureBuilder<PokemonResponse>(
+          future: listaPokemon,
+          builder: (context, snapshot) {
+            if(snapshot.hasData) {
+              return ListView.builder(
+                itemCount: snapshot.data!.results!.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(leading: Icon(Icons.adb), title: snapshot.data!.results!.forEach((element) {element.name}),);
+                }
 
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ListView.builder(itemBuilder: itemBuilder)
-          ],
-        ),
+              )
+            }else if(snapshot.hasError) {
+              return Text('No funciona');
+            }
+
+            return const CircularProgressIndicator(backgroundColor: Colors.amber,);
+          }
+        )
       ),
     );
   }
