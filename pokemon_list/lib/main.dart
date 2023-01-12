@@ -10,7 +10,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -46,42 +45,24 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  late Future<PokemonResponse> listaPokemon;
+  String _getPokemonPhoto(String url) {
+    String id = url.split("/")[6];
+    return id;
+  }
 
-  
-  /*List<int> pokemons = List.generate(10, (i) => i);
-  ScrollController _scrollController = new ScrollController();
-  bool estaHaciendoPeticion = false;*/
+  late Future<PokemonResponse> listaPokemon;
 
   @override
   void initState() {
     super.initState();
-    /*_scrollController.addListener(() {
-      if(_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-        listaPokemon = _getPokemons();
-      }
-    });*/
     listaPokemon = _getPokemons();
   }
 
-  /*@override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }*/
-
-  /*_obtenerPokemons() async {
-    if(!estaHaciendoPeticion) {
-      setState(() {
-        estaHaciendoPeticion = true;
-      });
-      List<int> nuevosPokemon = await peticion(pokemons.length, pokemons.length + 10);
-    }
-  }*/
 
 
   @override
   Widget build(BuildContext context) {
+
 
     return Scaffold(
       appBar: AppBar(
@@ -89,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-
+        
         child: FutureBuilder<PokemonResponse>(
           future: listaPokemon,
           builder: (context, snapshot) {
@@ -97,14 +78,19 @@ class _MyHomePageState extends State<MyHomePage> {
               return ListView.builder(
                 itemCount: snapshot.data!.results!.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return ListTile(leading: Icon(Icons.adb), title: snapshot.data!.results!.forEach((element) {element.name}),);
+                  return ListTile(
+                    leading: Image.network('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${_getPokemonPhoto(snapshot.data!.results![index].url!)}.png'),
+                    title: Text(snapshot.data!.results![index].name!),
+                    onTap: (){
+                      print(snapshot.data!.results![index].url!);
+                    },
+                    hoverColor: Colors.blue[200]  
+                  );
                 }
-
-              )
+              );
             }else if(snapshot.hasError) {
               return Text('No funciona');
             }
-
             return const CircularProgressIndicator(backgroundColor: Colors.amber,);
           }
         )
