@@ -14,6 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -83,6 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     title: Text(snapshot.data!.results![index].name!),
                     onTap: (){
                       print(snapshot.data!.results![index].url!);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PokemonDetalles()));
                     },
                     hoverColor: Colors.blue[200]  
                   );
@@ -150,3 +152,40 @@ class Pokemon {
     return data;
   }
 }
+
+class PokemonDetalles extends StatelessWidget {
+  /*
+  String ? nombre;
+  int ? peso;
+  int ? altura;
+  String ? imagen;
+
+  PokemonDetalles({
+    required this.nombre,
+    required this.peso,
+    required this.altura,
+    required this.imagen
+  });
+  */
+
+  const PokemonDetalles({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Detalles de pokemon"),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text("Atrás"),
+        ),
+      ),
+    );
+  }
+
+}
+
