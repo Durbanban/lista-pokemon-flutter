@@ -189,16 +189,17 @@ class _PokemonDetalles extends State<PokemonDetalles>{
 
 
    //CONSULTA A LA API DETALLES CON EL ID DE GENERAL (NO SOY UNA IA)
-    Future<PokemonDetails> _getPokemonDetails() async {
-    final respuesta = await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon/31'));
+    Future<dynamic> _getPokemonDetails() async {
+    final respuesta = await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon/${widget.id}'));
     if(respuesta.statusCode == 200) {
-      return PokemonDetails.fromJson(jsonDecode(respuesta.body));
+      //return PokemonDetails.fromJson(jsonDecode(respuesta.body));
+      return jsonDecode(respuesta.body);
     }else {
       throw Exception('No se pudieron cargar los detalles del pokemon');
     }
   }
 
-  late Future<PokemonDetails> pokemon;
+  late Future<dynamic> pokemon;
 
   @override
   void initState() {
@@ -217,7 +218,35 @@ class _PokemonDetalles extends State<PokemonDetalles>{
           future: pokemon,
           builder: (context, snapshot) {
             if(snapshot.hasData) {
-              return Text(snapshot.data!.abilities!.first!.ability!.name!);
+              int rangoTipos = snapshot.data!['types'].length;
+              return Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.network(snapshot.data['sprites']['other']['official-artwork']['front_default']),
+                    Text("Nombre: ${snapshot.data['name'].toUpperCase()}"),
+                    Expanded(
+                      child: SizedBox(
+                        width: 200,
+                        height: 20,
+                        child: ListView.builder(
+                          itemCount: rangoTipos,
+                          itemBuilder: (BuildContext context, int index) {
+                            return Text("Tipo: ${snapshot.data['types'][index]['type']['name'].toUpperCase()}",
+                            textAlign: TextAlign.center,);
+                          },
+                        )
+                      ) 
+                    ),
+                    Text("Peso: ${snapshot.data!['weight'].toString()} libras"),
+                    Text("Altura: ${snapshot.data!['height'].toString()} pies")
+                  ],
+                )
+              );
+              // return Image.network(snapshot.data['sprites']['other']['official-artwork']['front_default']);
+            }else if(snapshot.hasError) {
+              print(snapshot.error);
+              return Text("No se puede mostrar la foto");
             }
             return const CircularProgressIndicator(backgroundColor: Colors.amber,);
           },
