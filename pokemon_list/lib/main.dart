@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pokemon_list/pokemon_details.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,7 +39,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   Future<PokemonResponse> _getPokemons() async {
-    final respuesta = await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=10'));
+    final respuesta = await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=151'));
     if(respuesta.statusCode == 200) {
       return PokemonResponse.fromJson(jsonDecode(respuesta.body));
     }else {
@@ -65,33 +66,38 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
 
 
+
     return Scaffold(
       appBar: AppBar(
 
         title: Text(widget.title),
       ),
       body: Center(
-        
+
         child: FutureBuilder<PokemonResponse>(
+
           future: listaPokemon,
           builder: (context, snapshot) {
+
             if(snapshot.hasData) {
               return ListView.builder(
                 itemCount: snapshot.data!.results!.length,
                 itemBuilder: (BuildContext context, int index) {
+
+                  var pokeId = _getPokemonPhoto(snapshot.data!.results![index].url!);
                   return ListTile(
-                    leading: Image.network('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${_getPokemonPhoto(snapshot.data!.results![index].url!)}.png'),
+                    leading: Image.network('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png'),
                     title: Text(snapshot.data!.results![index].name!),
                     onTap: (){
                       print(snapshot.data!.results![index].url!);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PokemonDetalles()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => PokemonDetalles(id: pokeId)));
                     },
                     hoverColor: Colors.blue[200]  
                   );
                 }
               );
             }else if(snapshot.hasError) {
-              return Text('No funciona');
+              return const Text('No funciona');
             }
             return const CircularProgressIndicator(backgroundColor: Colors.amber,);
           }
@@ -153,7 +159,7 @@ class Pokemon {
   }
 }
 
-class PokemonDetalles extends StatelessWidget {
+class PokemonDetalles extends StatefulWidget {
   /*
   String ? nombre;
   int ? peso;
@@ -167,8 +173,38 @@ class PokemonDetalles extends StatelessWidget {
     required this.imagen
   });
   */
+  String id;
 
-  const PokemonDetalles({super.key});
+
+  PokemonDetalles({super.key, required this.id});
+
+  @override
+  State<PokemonDetalles> createState() => _PokemonDetalles();
+
+  
+
+}
+
+class _PokemonDetalles extends State<PokemonDetalles>{
+
+
+   //CONSULTA A LA API DETALLES CON EL ID DE GENERAL (NO SOY UNA IA)
+    Future<PokemonDetails> _getPokemonDetails() async {
+    final respuesta = await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon/31'));
+    if(respuesta.statusCode == 200) {
+      return PokemonDetails.fromJson(jsonDecode(respuesta.body));
+    }else {
+      throw Exception('No se pudieron cargar los detalles del pokemon');
+    }
+  }
+
+  late Future<PokemonDetails> pokemon;
+
+  @override
+  void initState() {
+    pokemon = _getPokemonDetails();
+  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -177,15 +213,17 @@ class PokemonDetalles extends StatelessWidget {
         title: const Text("Detalles de pokemon"),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
+        child: FutureBuilder(
+          future: pokemon,
+          builder: (context, snapshot) {
+            if(snapshot.hasData) {
+              return Text(snapshot.data!.abilities!.first!.ability!.name!);
+            }
+            return const CircularProgressIndicator(backgroundColor: Colors.amber,);
           },
-          child: const Text("Atrás"),
         ),
       ),
     );
   }
-
 }
 

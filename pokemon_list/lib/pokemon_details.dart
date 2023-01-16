@@ -320,8 +320,6 @@ class Sprites {
         frontFemale: json["front_female"],
         frontShiny: json["front_shiny"],
         frontShinyFemale: json["front_shiny_female"],
-        other: json["other"],
-        versions: json["versions"],
         animated: json["animated"],
     );
 
